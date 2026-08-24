@@ -1,6 +1,2 @@
-01   2026-08-20   High      Water leakage in Phase 2 block C        Plumber notified, fixing by Tuesday.
-02   2026-08-21   Medium    Streetlight broken near villa 45        Vendor contacted for replacement bulbs.
-03   2026-08-22   Low       Gym AC remote missing                   Backup remote provided at the reception.
-04   2026-08-23   High      Main security gate sensor malfunction   Urgent repair ticket raised with security agency.
-05   2026-08-24   Medium    Landscape sprinkler broken              Gardener scheduled for Wednesday morning.
-06   2026-08-20   High      testing                                 testing
+01   2026-08-20   High      In Progress    Water leakage in Phase 2 block C        Plumber notified, fixing by Tuesday.
+02   2026-08-21   Medium    Hold           Streetlight broken near villa 45        Vendor contacted for replacement bulbs.
