@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurum Villas Owners Association</title>
+    <style>
+        :root {
+            --primary: #b59410;
+            --primary-dark: #8c720b;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --border: #e2e8f0;
+            --high: #feb2b2;
+            --high-text: #9b2c2c;
+            --medium: #fef08a;
+            --medium-text: #713f12;
+            --low: #bbf7d0;
+            --low-text: #22543d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            margin-top: 0;
+            font-size: 2.2rem;
+            text-align: center;
+            letter-spacing: -0.5px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        select {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background-color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        .status {
+            font-size: 0.85rem;
+            color: #718096;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #48bb78;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(72, 187, 120, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(72, 187, 120, 0); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        th {
+            background-color: #f7fafc;
+            color: #4a5568;
+            padding: 14px 16px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .badge-high { background-color: var(--high); color: var(--high-text); }
+        .badge-medium { background-color: var(--medium); color: var(--medium-text); }
+        .badge-low { background-color: var(--low); color: var(--low-text); }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Aurum Villas Owners Association</h1>
+    
+    <div class="controls">
+        <div class="filter-group">
+            <label for="priorityFilter">Filter Priority:</label>
+            <select id="priorityFilter" onchange="renderTable()">
+                <option value="All">All Priorities</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+        <div class="status">
+            <span class="live-dot"></span> Auto-sync active (monitoring issues.txt)
+        </div>
+    </div>
+
+    <table id="issuesTable">
+        <thead>
+            <tr>
+                <th style="width: 10%">Sr. No</th>
+                <th style="width: 15%">Priority</th>
+                <th style="width: 45%">Issue</th>
+                <th style="width: 30%">Comments</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Dynamic items populate here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    let allData = [];
+    const textFileUrl = 'issues.txt'; // Path to the space-separated Notepad file
+
+    async function fetchAndUpdateData() {
+        try {
+            const response = await fetch(textFileUrl + '?t=' + new Date().getTime()); // Prevent caching
+            if (!response.ok) throw new Error('Network response error');
+            const text = await response.text();
+            parseTextData(text);
+            renderTable();
+        } catch (error) {
+            console.error('Error loading notepad file:', error);
+        }
+    }
+
+    function parseTextData(text) {
+        const lines = text.split('\n');
+        allData = [];
+
+        lines.forEach(line => {
+            if (!line.trim()) return;
+
+            // Parse fixed-width positions matching Notepad layout:
+            // 0 to 5: Sr No
+            // 5 to 15: Priority
+            // 15 to 55: Issue
+            // 55 onwards: Comments
+            const srNo = line.substring(0, 5).trim();
+            const priority = line.substring(5, 15).trim();
+            const issue = line.substring(15, 55).trim();
+            const comments = line.substring(55).trim();
+
+            if (srNo && priority && issue) {
+                allData.push({ srNo, priority, issue, comments });
+            }
+        });
+
+        // Sort items in descending order by Serial Number / entry order
+        allData.sort((a, b) => b.srNo.localeCompare(a.srNo, undefined, {numeric: true, sensitivity: 'base'}));
+    }
+
+    function renderTable() {
+        const filterValue = document.getElementById('priorityFilter').value;
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        const filteredData = allData.filter(item => 
+            filterValue === 'All' || item.priority.toLowerCase() === filterValue.toLowerCase()
+        );
+
+        if (filteredData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-state">No issues found matching the selected filter.</td></tr>`;
+            return;
+        }
+
+        filteredData.forEach(item => {
+            const tr = document.createElement('tr');
+            
+            const badgeClass = `badge badge-${item.priority.toLowerCase()}`;
+            
+            tr.innerHTML = `
+                <td><b>${item.srNo}</b></td>
+                <td><span class="${badgeClass}">${item.priority}</span></td>
+                <td>${item.issue}</td>
+                <td>${item.comments || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Initial fetch & set auto-refresh interval every 5 seconds
+    fetchAndUpdateData();
+    setInterval(fetchAndUpdateData, 5000);
+</script>
+
+</body>
+</html>
